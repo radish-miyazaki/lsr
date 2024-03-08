@@ -95,7 +95,7 @@ fn fox() -> TestResult {
 
 #[test]
 fn fox_long() -> TestResult {
-    run_long(FOX, "-rw-------", "45")
+    run_long(FOX, "-rw-r--r--", "45")
 }
 
 #[test]
@@ -168,11 +168,11 @@ fn dir_long(args: &[&str], expected: &[(&str, &str, &str)]) -> TestResult {
     let mut check = vec![];
     for line in lines {
         let parts: Vec<_> = line.split_whitespace().collect();
-        let path = parts.last().unwrap().clone();
-        let permissions = parts.first().unwrap().clone();
+        let path = *parts.last().unwrap();
+        let permissions = *parts.first().unwrap();
         let size = match permissions.chars().next() {
             Some('d') => "",
-            _ => parts.get(4).unwrap().clone(),
+            _ => parts.get(4).unwrap(),
         };
         check.push((path, permissions, size));
     }
@@ -191,7 +191,7 @@ fn dir1_long() -> TestResult {
         &[
             ("tests/inputs/empty.txt", "-rw-r--r--", "0"),
             ("tests/inputs/bustle.txt", "-rw-r--r--", "193"),
-            ("tests/inputs/fox.txt", "-rw-------", "45"),
+            ("tests/inputs/fox.txt", "-rw-r--r--", "45"),
             ("tests/inputs/dir", "drwxr-xr-x", ""),
         ],
     )
@@ -204,7 +204,7 @@ fn dir1_long_all() -> TestResult {
         &[
             ("tests/inputs/empty.txt", "-rw-r--r--", "0"),
             ("tests/inputs/bustle.txt", "-rw-r--r--", "193"),
-            ("tests/inputs/fox.txt", "-rw-------", "45"),
+            ("tests/inputs/fox.txt", "-rw-r--r--", "45"),
             ("tests/inputs/dir", "drwxr-xr-x", ""),
             ("tests/inputs/.hidden", "-rw-r--r--", "0"),
         ],
