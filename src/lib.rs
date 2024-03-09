@@ -63,6 +63,8 @@ pub fn mk_triple(mode: u32, owner: Owner) -> String {
     )
 }
 
+/// 0o751 のような 8 進数でファイルモードを指定すると、
+/// "rwrr-x--x" のような文字列を返す
 fn format_mode(mode: u32) -> String {
     format!(
         "{}{}{}",
