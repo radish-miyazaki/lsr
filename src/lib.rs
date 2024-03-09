@@ -30,19 +30,18 @@ fn find_files(paths: &[String], show_hidden: bool) -> MyResult<Vec<PathBuf>> {
         match fs::metadata(path) {
             Err(e) => {
                 eprintln!("{}: {}", path, e);
-                continue;
             }
             Ok(m) => {
                 if m.is_file() {
                     results.push(PathBuf::from(path));
                 } else {
-                    fs::read_dir(path)?.for_each(|e| {
-                        if let Ok(e) = e {
-                            if show_hidden || !e.file_name().to_string_lossy().starts_with('.') {
-                                results.push(e.path());
-                            }
+                    for entry in fs::read_dir(path)? {
+                        let entry = entry?;
+
+                        if show_hidden || !entry.file_name().to_string_lossy().starts_with('.') {
+                            results.push(entry.path());
                         }
-                    })
+                    }
                 }
             }
         }
