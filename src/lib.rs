@@ -118,10 +118,7 @@ pub fn run() -> MyResult<()> {
     let paths = find_files(&args.paths, args.show_hidden)?;
 
     if args.long {
-        let output = format_output(&paths)?;
-        for line in output.lines() {
-            println!("{}", line);
-        }
+        println!("{}", format_output(&paths)?);
     } else {
         for path in paths {
             println!("{}", path.display());
