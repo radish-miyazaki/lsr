@@ -1,7 +1,10 @@
+mod owner;
+
 use std::{fs, os::unix::fs::MetadataExt, path::PathBuf};
 
 use chrono::{DateTime, Local};
 use clap::Parser;
+use owner::Owner;
 use tabular::{Row, Table};
 use users::{get_group_by_gid, get_user_by_uid};
 
@@ -50,20 +53,23 @@ fn find_files(paths: &[String], show_hidden: bool) -> MyResult<Vec<PathBuf>> {
     Ok(results)
 }
 
-fn format_mode(mode: u32) -> String {
-    let mut s = String::with_capacity(9);
-    let rwx = ['r', 'w', 'x'];
-    for i in (0..=2).rev() {
-        for (j, p) in rwx.iter().enumerate() {
-            if mode & (1 << (3 * i + (2 - j))) == 0 {
-                s.push('-');
-            } else {
-                s.push(*p);
-            }
-        }
-    }
+pub fn mk_triple(mode: u32, owner: Owner) -> String {
+    let [read, write, execute] = owner.masks();
+    format!(
+        "{}{}{}",
+        if mode & read == 0 { '-' } else { 'r' },
+        if mode & write == 0 { '-' } else { 'w' },
+        if mode & execute == 0 { '-' } else { 'x' }
+    )
+}
 
-    s
+fn format_mode(mode: u32) -> String {
+    format!(
+        "{}{}{}",
+        mk_triple(mode, Owner::User),
+        mk_triple(mode, Owner::Group),
+        mk_triple(mode, Owner::Other)
+    )
 }
 
 fn format_output(paths: &[PathBuf]) -> MyResult<String> {
@@ -124,7 +130,7 @@ pub fn run() -> MyResult<()> {
 mod tests {
     use std::path::PathBuf;
 
-    use crate::format_output;
+    use crate::{format_output, mk_triple, owner::Owner};
 
     use super::{find_files, format_mode};
 
@@ -221,6 +227,14 @@ mod tests {
                 "tests/inputs/fox.txt"
             ]
         )
+    }
+
+    #[test]
+    fn test_mk_triple() {
+        assert_eq!(mk_triple(0o751, Owner::User), "rwx");
+        assert_eq!(mk_triple(0o751, Owner::Group), "r-x");
+        assert_eq!(mk_triple(0o751, Owner::Other), "--x");
+        assert_eq!(mk_triple(0o600, Owner::Other), "---");
     }
 
     #[test]
