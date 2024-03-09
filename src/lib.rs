@@ -80,14 +80,17 @@ fn format_output(paths: &[PathBuf]) -> MyResult<String> {
 
     for path in paths {
         let metadata = path.metadata()?;
+
         let uid = metadata.uid();
-        let gid = metadata.gid();
         let user_name = get_user_by_uid(uid)
             .map(|u| u.name().to_string_lossy().to_string())
             .unwrap_or_else(|| uid.to_string());
+
+        let gid = metadata.gid();
         let group_name = get_group_by_gid(gid)
             .map(|g| g.name().to_string_lossy().to_string())
             .unwrap_or_else(|| gid.to_string());
+
         let updated_at: DateTime<Local> = DateTime::from(metadata.modified()?);
 
         table.add_row(
