@@ -100,11 +100,7 @@ fn format_output(paths: &[PathBuf]) -> MyResult<String> {
                 .with_cell(metadata.nlink()) // link count
                 .with_cell(user_name) // user name
                 .with_cell(group_name) // group name
-                .with_cell(if path.is_file() {
-                    metadata.size().to_string()
-                } else {
-                    "".to_string()
-                }) // file size
+                .with_cell(metadata.size()) // file size
                 .with_cell(updated_at.format("%H:%M")) // updated at
                 .with_cell(path.display()), // path
         );
