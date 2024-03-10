@@ -81,6 +81,10 @@ fn format_output(paths: &[PathBuf]) -> MyResult<String> {
     for path in paths {
         let metadata = path.metadata()?;
 
+        let file_type = if path.is_dir() { "d" } else { "-" };
+        let mode: String = format_mode(metadata.mode());
+        let nlink = metadata.nlink();
+
         let uid = metadata.uid();
         let user_name = get_user_by_uid(uid)
             .map(|u| u.name().to_string_lossy().to_string())
@@ -91,18 +95,20 @@ fn format_output(paths: &[PathBuf]) -> MyResult<String> {
             .map(|g| g.name().to_string_lossy().to_string())
             .unwrap_or_else(|| gid.to_string());
 
-        let updated_at: DateTime<Local> = DateTime::from(metadata.modified()?);
+        let size = metadata.size();
+        let modified = DateTime::<Local>::from(metadata.modified()?).format("%H:%M");
+        let path_name = path.display();
 
         table.add_row(
             Row::new()
-                .with_cell(if path.is_dir() { "d" } else { "-" }) // file type (d or -)
-                .with_cell(format_mode(metadata.mode())) // permissions
-                .with_cell(metadata.nlink()) // link count
+                .with_cell(file_type) // file type (d or -)
+                .with_cell(mode) // permissions
+                .with_cell(nlink) // link count
                 .with_cell(user_name) // user name
                 .with_cell(group_name) // group name
-                .with_cell(metadata.size()) // file size
-                .with_cell(updated_at.format("%H:%M")) // updated at
-                .with_cell(path.display()), // path
+                .with_cell(size) // file size
+                .with_cell(modified) // updated at
+                .with_cell(path_name), // path
         );
     }
 
